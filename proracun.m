@@ -120,7 +120,7 @@ classdef Proracun
             obj.alpha0 = obj.sigma_fDN / (sqrt(3) * obj.tau_fDI);
         end
 
-        function plotIdealAxle(obj)
+        function plotIdealShaft(obj)
             figure('Name', 'Idealni oblik vratila')
             grid;
             hold on;
@@ -133,7 +133,7 @@ classdef Proracun
             xlabel('Udaljenost (mm)');
             ylabel('Promjer vratila (mm)');
 
-            hold off
+            hold off;
         end
 
         function d = getDiameter(obj, x)
