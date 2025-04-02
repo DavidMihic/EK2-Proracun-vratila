@@ -1,5 +1,32 @@
 classdef Proracun
     properties
+        % Sample values
+        % T = 610000; % Nmm
+        % J2 = 0.0500; % kgm^2 = Nms^2
+        % J3 = 0.8750; % kgm^2 = Nms^2
+        % l = 360; % mm
+        % G_z2 = 240; % N
+        % G_z3 = 110; % N
+        % b2 = 120; % mm
+        % b3 = 120; % mm
+        % r2 = 180; % mm
+        % r3 = 63.1; % mm
+
+        % sigmaF_max = 50; % N/mm^2
+        % sigma_fDN = 240; % N/mm^2
+        % tau_fDI = 190; % N/mm^2
+        % alpha0;
+
+        % n = 5.33; % rps
+        % L_h = 8000; % hrs
+        % ALPHA = 20; % deg
+        % ALPHA_N = 20; % deg
+        % BETA = 18; % deg
+
+        % l3 = 108; % mm
+        % l6 = 252; % mm
+        
+        % Custom values
         T = 420000; % Nmm
         J2 = 0.0500; % kgm^2 = Nms^2
         J3 = 1.050; % kgm^2 = Nms^2
@@ -24,6 +51,8 @@ classdef Proracun
 
         l3 = 100; % mm
         l6 = 250; % mm
+
+        resolution = 0.5;
 
         F_t2; F_r2; T2;
 
@@ -61,7 +90,7 @@ classdef Proracun
             obj.F_Bv = obj.F_t2 + obj.G_z2 + obj.F_t3 + obj.G_z3 - obj.F_Av;
             obj.F_B = sqrt(obj.F_Bh^2 + obj.F_Bv^2);
             
-            obj.x = 0:0.5:obj.l;
+            obj.x = 0:obj.resolution:obj.l;
             l3_index = find(obj.x == obj.l3);
             l6_index = find(obj.x == obj.l6);
             obj.x1 = obj.x(1:l3_index+1);
