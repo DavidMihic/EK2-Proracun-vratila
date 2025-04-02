@@ -130,6 +130,8 @@ classdef Proracun
             xline(obj.l, '--');
 
             plot(obj.x, obj.getDiameter(obj.x));
+            xlabel('Udaljenost (mm)');
+            ylabel('Promjer vratila (mm)');
 
             hold off
         end
