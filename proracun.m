@@ -53,7 +53,7 @@ classdef Proracun
         l3 = 100; % mm
         l6 = 250; % mm
 
-        resolution = 0.5;
+        resolution = 0.5; % mm
 
         F_t2; F_r2; T2;
 
@@ -92,12 +92,14 @@ classdef Proracun
             obj.F_Bv = obj.F_t2 + obj.G_z2 + obj.F_t3 + obj.G_z3 - obj.F_Av;
             obj.F_B = sqrt(obj.F_Bh ^ 2 + obj.F_Bv ^ 2);
 
-            obj.x = 0:obj.resolution:obj.l;
-            l3_index = find(obj.x == obj.l3);
-            l6_index = find(obj.x == obj.l6);
-            obj.x1 = obj.x(1:l3_index + 1);
-            obj.x2 = obj.x(l3_index + 1:l6_index + 1);
-            obj.x3 = obj.x(l6_index + 1:end);
+            x = 0:obj.resolution:obj.l;
+            l3_index = find(x == obj.l3, 1);
+            x = [x(1:l3_index), obj.l3, x(l3_index + 1:end)];
+            l6_index = find(x == obj.l6, 1);
+            obj.x = [x(1:l6_index), obj.l6, x(l6_index + 1:end)];
+            obj.x1 = obj.x(1:l3_index);
+            obj.x2 = obj.x(l3_index:l6_index);
+            obj.x3 = obj.x(l6_index:end);
 
             obj.Qy1 = @(x) obj.F_Ah + x * 0;
             obj.Qy2 = @(x) obj.F_Ah + obj.F_r2 + x * 0;
@@ -142,11 +144,26 @@ classdef Proracun
             k = (10 / obj.sigmaF_max) ^ (1/3);
             d = zeros(size(x));
 
+            if isscalar(x)
+
+                if x < obj.l3
+                    M = sqrt(obj.Mz1(x) ^ 2 + obj.My1(x) ^ 2);
+                elseif x <= obj.l6
+                    Mf = sqrt(obj.Mz2(x) ^ 2 + obj.My2(x) ^ 2);
+                    M = sqrt(Mf ^ 2 + 0.75 * (obj.alpha0 * obj.Tx2(x)) ^ 2);
+                else
+                    M = sqrt(obj.Mz3(x) ^ 2 + obj.My3(x) ^ 2);
+                end
+
+                d = k * M ^ (1/3);
+                return
+            end
+
             for i = 1:length(x)
 
-                if x(i) <= obj.l3
+                if (x(i) == obj.l3 && x(i) == x(i + 1)) || (x(i) < obj.l3)
                     M = sqrt(obj.Mz1(x(i)) ^ 2 + obj.My1(x(i)) ^ 2);
-                elseif x(i) <= obj.l6
+                elseif (x(i) == obj.l6 && x(i) == x(i + 1)) || x(i) < obj.l6
                     Mf = sqrt(obj.Mz2(x(i)) ^ 2 + obj.My2(x(i)) ^ 2);
                     M = sqrt(Mf ^ 2 + 0.75 * (obj.alpha0 * obj.Tx2(x(i))) ^ 2);
                 else
