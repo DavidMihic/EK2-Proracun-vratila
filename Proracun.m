@@ -38,6 +38,7 @@ classdef Proracun
         b3 = 110; % mm
         r2 = 165; % mm
         r3 = 57.8; % mm
+        middlePartWidth = 24; % mm
 
         sigmaF_max = 50; % N/mm^2
         sigma_fDN = 240; % N/mm^2
@@ -50,8 +51,8 @@ classdef Proracun
         ALPHA_N = 20; % deg
         BETA = 18; % deg
 
-        l3 = 100; % mm
-        l6 = 250; % mm
+        l3; % mm
+        l6; % mm
 
         resolution = 0.5; % mm
 
@@ -75,6 +76,9 @@ classdef Proracun
     methods
 
         function obj = Proracun()
+            obj.l3 = (obj.l - obj.b2 - obj.middlePartWidth) / 2;
+            obj.l6 = (obj.l + obj.b3 + obj.middlePartWidth) / 2;
+
             obj.F_t2 = obj.T / obj.r2;
             obj.F_r2 = obj.F_t2 * tand(obj.ALPHA);
             obj.T2 = obj.F_t2 * obj.r2;
