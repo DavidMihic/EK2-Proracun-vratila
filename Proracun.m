@@ -67,6 +67,7 @@ classdef Proracun
         x; x1; x2; x3;
 
         Qy1; Qy2; Qy3;
+        Nx1; Nx2; Nx3;
         Mz1; Mz2; Mz3;
         Tx1; Tx2; Tx3;
         Qz1; Qz2; Qz3;
@@ -108,6 +109,10 @@ classdef Proracun
             obj.Qy1 = @(x) obj.F_Ah + x * 0;
             obj.Qy2 = @(x) obj.F_Ah + obj.F_r2 + x * 0;
             obj.Qy3 = @(x) -obj.F_Bh + x * 0;
+
+            obj.Nx1 = @(x) x * 0;
+            obj.Nx2 = @(x) x * 0;
+            obj.Nx3 = @(x) obj.F_a3 + x * 0;
 
             obj.Mz1 = @(x) -obj.F_Ah * x;
             obj.Mz2 = @(x) - (obj.F_Ah + obj.F_r2) * (x - obj.l3) + obj.Mz1(obj.l3);
@@ -186,11 +191,12 @@ classdef Proracun
             figure('Name', 'Sile i momenti')
 
             graphs = {
-                      {obj.My1, obj.My2, obj.My3}, 'm', 'My', 'Moment (Nmm)'
-                      {obj.Mz1, obj.Mz2, obj.Mz3}, 'g', 'Mz', 'Moment (Nmm)';
-                      {obj.Tx1, obj.Tx2, obj.Tx3}, 'b', 'Tx', 'Moment (Nmm)';
+                      {obj.Nx1, obj.Nx2, obj.Nx3}, 'y', 'Nx', 'Sila (N)';
                       {obj.Qy1, obj.Qy2, obj.Qy3}, 'r', 'Qy', 'Sila (N)';
                       {obj.Qz1, obj.Qz2, obj.Qz3}, 'c', 'Qz', 'Sila (N)';
+                      {obj.Tx1, obj.Tx2, obj.Tx3}, 'b', 'Tx', 'Moment (Nmm)';
+                      {obj.My1, obj.My2, obj.My3}, 'm', 'My', 'Moment (Nmm)'
+                      {obj.Mz1, obj.Mz2, obj.Mz3}, 'g', 'Mz', 'Moment (Nmm)';
                       };
 
             for i = 1:size(graphs, 1)
