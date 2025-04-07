@@ -45,7 +45,7 @@ classdef Proracun
         tau_fDI = 190; % N/mm^2
         alpha0;
 
-        n = 5.33; % rps
+        n_m = 320; % rpm
         L_h = 8000; % hrs
         ALPHA = 20; % deg
         ALPHA_N = 20; % deg
@@ -62,7 +62,7 @@ classdef Proracun
 
         F_Ah; F_Av; F_A;
 
-        F_Bh; F_Bv; F_B;
+        F_Bh; F_Bv; F_Ba; F_B;
 
         x; x1; x2; x3;
 
@@ -82,12 +82,12 @@ classdef Proracun
 
             obj.F_t2 = obj.T / obj.r2;
             obj.F_r2 = obj.F_t2 * tand(obj.ALPHA);
-            obj.T2 = obj.F_t2 * obj.r2;
+            obj.T2 = obj.T;
 
             obj.F_t3 = obj.T / obj.r3;
             obj.F_r3 = obj.F_t3 * tand(obj.ALPHA_N) / cosd(obj.BETA);
             obj.F_a3 = obj.F_t3 * tand(obj.BETA);
-            obj.T3 = obj.F_t3 * obj.r3;
+            obj.T3 = obj.T;
 
             obj.F_Ah = (obj.F_r3 * (obj.l - obj.l6) + obj.F_a3 * obj.r3 - obj.F_r2 * (obj.l - obj.l3)) / obj.l;
             obj.F_Av = ((obj.F_t2 + obj.G_z2) * (obj.l - obj.l3) + (obj.F_t3 + obj.G_z3) * (obj.l - obj.l6)) / obj.l;
@@ -95,6 +95,7 @@ classdef Proracun
 
             obj.F_Bh = -obj.F_Ah - obj.F_r2 + obj.F_r3;
             obj.F_Bv = obj.F_t2 + obj.G_z2 + obj.F_t3 + obj.G_z3 - obj.F_Av;
+            obj.F_Ba = obj.F_a3;
             obj.F_B = sqrt(obj.F_Bh ^ 2 + obj.F_Bv ^ 2);
 
             x = 0:obj.resolution:obj.l;
