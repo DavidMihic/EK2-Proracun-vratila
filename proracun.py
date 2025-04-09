@@ -5,6 +5,18 @@ from matplotlib.patches import Polygon
 
 
 class Proracun:
+    # Sample values
+    # T = 610000  # Nmm
+    # J2 = 0.0500  # kgm^2 = Nms^2
+    # J3 = 0.8750  # kgm^2 = Nms^2
+    # l = 360  # mm
+    # G_z2 = 240  # N
+    # G_z3 = 110  # N
+    # b2 = 120  # mm
+    # b3 = 120  # mm
+    # r2 = 100  # mm
+    # r3 = 63.1  # mm
+
     T = 420000  # Nmm
     J2 = 0.0500  # kgm^2 = Nms^2
     J3 = 1.050  # kgm^2 = Nms^2
@@ -194,9 +206,3 @@ class Proracun:
             curY = y[i]
             ax.plot(curX, list(map(curY, curX)), color=color, linewidth=2)
             ax.fill_between(curX, list(map(curY, curX)), 0, color=color, alpha=0.3)
-
-
-if __name__ == "__main__":
-    proracun = Proracun()
-    proracun.plotForcesMoments()
-    proracun.plotIdealShaft()
