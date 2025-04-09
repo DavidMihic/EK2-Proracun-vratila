@@ -1,6 +1,7 @@
 import numpy as np
 from math import sqrt, cos, tan, radians as rad
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
 
 
 class Proracun:
@@ -102,7 +103,7 @@ class Proracun:
         self.k = (10 / self.sigmaF_max) ** (1 / 3)
 
     def plotIdealShaft(self):
-        plt.figure("Idealni oblik vratila")
+        plt.figure("Idealni oblik vratila", figsize=(10, 7))
         plt.suptitle("Idealni oblik vratila")
         plt.grid(True)
 
@@ -112,7 +113,19 @@ class Proracun:
         plt.axvline(self.l6, linestyle="--", color="black")
         plt.axvline(self.l, linestyle="--", color="black")
 
-        plt.plot(self.x, self.getDiameter(self.x))
+        diameters = self.getDiameter(self.x)
+        plt.plot(self.x, diameters, "b")
+
+        vertices = [(self.x[0], 0)] + list(zip(self.x, diameters)) + [(self.x[-1], 0)]
+        polygon = Polygon(
+            vertices,
+            closed=True,
+            facecolor="none",
+            edgecolor="b",
+            hatch="//",
+        )
+        plt.gca().add_patch(polygon)
+
         plt.xlabel("Udaljenost (mm)")
         plt.ylabel("Promjer vratila (mm)")
 
