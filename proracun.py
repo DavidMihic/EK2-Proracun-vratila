@@ -69,7 +69,7 @@ class Vratilo:
         self.F_Ba = self.F_a3
         self.F_B = sqrt(self.F_Bh**2 + self.F_Bv**2)
 
-        x = list(np.arange(0, self.l, self.resolution))
+        x = list(np.arange(0, self.l + self.resolution, self.resolution))
         l3_index = [i for i in range(len(x)) if x[i] == self.l3][0]
         x = x[: l3_index + 1] + [self.l3] + x[l3_index + 1 :]
         l6_index = [i for i in range(len(x)) if x[i] == self.l6][0]
@@ -127,7 +127,7 @@ class Vratilo:
         diameters = self.getDiameter(self.x)
         plt.plot(self.x, diameters, "b")
 
-        vertices = [(self.x[0], 0)] + list(zip(self.x, diameters)) + [(self.x[-1], 0)]
+        vertices = list(zip(self.x, diameters))
         polygon = Polygon(
             vertices,
             closed=True,
