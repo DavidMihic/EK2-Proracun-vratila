@@ -4,44 +4,43 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 
 
-class Proracun:
-    # Sample values
-    # T = 610000  # Nmm
-    # J2 = 0.0500  # kgm^2 = Nms^2
-    # J3 = 0.8750  # kgm^2 = Nms^2
-    # l = 360  # mm
-    # G_z2 = 240  # N
-    # G_z3 = 110  # N
-    # b2 = 120  # mm
-    # b3 = 120  # mm
-    # r2 = 100  # mm
-    # r3 = 63.1  # mm
-
-    T = 420000  # Nmm
-    J2 = 0.0500  # kgm^2 = Nms^2
-    J3 = 1.050  # kgm^2 = Nms^2
-    l = 350  # mm
-    G_z2 = 210  # N
-    G_z3 = 80  # N
-    b2 = 110  # mm
-    b3 = 110  # mm
-    r2 = 165  # mm
-    r3 = 57.8  # mm
+class Vratilo:
     middlePartWidth = 24  # mm
 
     sigmaF_max = 50  # N/mm^2
     sigma_fDN = 240  # N/mm^2
     tau_fDI = 190  # N/mm^2
 
-    n_m = 320  # rpm
-    L_h = 8000  # hrs
     ALPHA = 20  # deg
     ALPHA_N = 20  # deg
     BETA = 18  # deg
 
     resolution = 0.5  # mm
 
-    def __init__(self):
+    def __init__(self, debug=False):
+        if debug:  # Sample values
+            self.T = 610000  # Nmm
+            self.J2 = 0.0500  # kgm^2 = Nms^2
+            self.J3 = 0.8750  # kgm^2 = Nms^2
+            self.l = 360  # mm
+            self.G_z2 = 240  # N
+            self.G_z3 = 110  # N
+            self.b2 = 120  # mm
+            self.b3 = 120  # mm
+            self.r2 = 180  # mm
+            self.r3 = 63.1  # mm
+        else:
+            self.T = 420000  # Nmm
+            self.J2 = 0.0500  # kgm^2 = Nms^2
+            self.J3 = 1.050  # kgm^2 = Nms^2
+            self.l = 350  # mm
+            self.G_z2 = 210  # N
+            self.G_z3 = 80  # N
+            self.b2 = 110  # mm
+            self.b3 = 110  # mm
+            self.r2 = 165  # mm
+            self.r3 = 57.8  # mm
+
         self.l3 = (self.l - self.b2 - self.middlePartWidth) / 2
         self.l6 = (self.l + self.b3 + self.middlePartWidth) / 2
 
@@ -144,7 +143,7 @@ class Proracun:
         plt.show()
 
     def getDiameter(self, x):
-        if isinstance(x, int):
+        if isinstance(x, (int, float)):
             if x < self.l3:
                 M = sqrt(self.Mz1(x) ** 2 + self.My1(x) ** 2)
             elif x <= self.l6:
@@ -206,3 +205,77 @@ class Proracun:
             curY = y[i]
             ax.plot(curX, list(map(curY, curX)), color=color, linewidth=2)
             ax.fill_between(curX, list(map(curY, curX)), 0, color=color, alpha=0.3)
+
+
+class Lezaj:
+    n_m = 320  # rpm
+    L_h = 8000  # hrs
+    helperRatioRanges = [0.172, 0.345, 0.689, 1.03, 1.38, 2.07, 3.45, 5.17, 6.89]
+    eRanges = [0.19, 0.22, 0.26, 0.28, 0.30, 0.34, 0.38, 0.42, 0.44]
+    yRanges = [2.30, 1.99, 1.71, 1.55, 1.45, 1.31, 1.15, 1.04, 1.00]
+
+    def __init__(
+        self,
+        designation,
+        innerDiameter,
+        radialForce,
+        axialForce,
+        C,
+        C0,
+        f0,
+        isLeftBearing,
+    ):
+        self.designation = designation
+        self.innerDiameter = innerDiameter
+        self.radialForce = radialForce
+        self.axialForce = axialForce
+        self.forceRatio = axialForce / radialForce
+        self.C = C
+        self.C0 = C0
+        self.f0 = f0
+        self.isLeftBearing = isLeftBearing
+
+        if isLeftBearing:
+            self.epsilon = 10 / 3
+        else:
+            self.epsilon = 3
+
+    def checkBearing(self):
+        self.helperRatio = self.f0 * self.axialForce / self.C0
+        self.rightIdx = [
+            i
+            for i in range(len(self.helperRatioRanges))
+            if self.helperRatioRanges[i] >= self.helperRatio
+        ][0]
+
+        helperRatioLeft = self.helperRatioRanges[self.rightIdx - 1]
+        helperRatioRight = self.helperRatioRanges[self.rightIdx]
+        eLeft = self.eRanges[self.rightIdx - 1]
+        eRight = self.eRanges[self.rightIdx]
+
+        self.e = eLeft + (self.helperRatio - helperRatioLeft) / (
+            helperRatioRight - helperRatioLeft
+        ) * (eRight - eLeft)
+
+        if self.isLeftBearing or self.forceRatio <= self.e:
+            self.X, self.Y = 1, 0
+        else:
+            yLeft = self.yRanges[self.rightIdx - 1]
+            yRight = self.yRanges[self.rightIdx]
+            self.X = 0.56
+            self.Y = yLeft + (self.e - eLeft) / (eLeft - eRight) * (yRight - yLeft)
+
+        radialLoadEquivalent = self.X * self.radialForce + self.Y * self.axialForce
+
+        self.C1 = radialLoadEquivalent * (60 * self.n_m * self.L_h / 1e6) ** (
+            1 / self.epsilon
+        )
+        self.Lh = (
+            1e6 / (60 * self.n_m) * (self.C / radialLoadEquivalent) ** self.epsilon
+        )
+
+        print("Ležaj:", self.designation)
+        print("C1:", self.C1)
+        print("Vrijeme:", self.Lh)
+
+        print(f"{'' if self.C1 <= self.C else 'NE '}ZADOVOLJAVA!")
