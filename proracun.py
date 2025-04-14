@@ -16,29 +16,22 @@ class Vratilo:
 
     resolution = 0.5  # mm
 
-    def __init__(self, debug=False):
-        if debug:  # Sample values
-            self.T = 610000  # Nmm
-            self.J2 = 0.0500  # kgm^2 = Nms^2
-            self.J3 = 0.8750  # kgm^2 = Nms^2
-            self.l = 360  # mm
-            self.G_z2 = 240  # N
-            self.G_z3 = 110  # N
-            self.b2 = 120  # mm
-            self.b3 = 120  # mm
-            self.r2 = 180  # mm
-            self.r3 = 63.1  # mm
-        else:
-            self.T = 420000  # Nmm
-            self.J2 = 0.0500  # kgm^2 = Nms^2
-            self.J3 = 1.050  # kgm^2 = Nms^2
-            self.l = 350  # mm
-            self.G_z2 = 210  # N
-            self.G_z3 = 80  # N
-            self.b2 = 110  # mm
-            self.b3 = 110  # mm
-            self.r2 = 165  # mm
-            self.r3 = 57.8  # mm
+    def __init__(self, steps, leftBearingWidth, rightBearingWidth):
+        self.T = 420000  # Nmm
+        self.J2 = 0.0500  # kgm^2 = Nms^2
+        self.J3 = 1.050  # kgm^2 = Nms^2
+        self.l = 350  # mm
+        self.G_z2 = 210  # N
+        self.G_z3 = 80  # N
+        self.b2 = 110  # mm
+        self.b3 = 110  # mm
+        self.r2 = 165  # mm
+        self.r3 = 57.8  # mm
+
+        self.steps = steps
+        self.L = sum(pair[1] for pair in steps)
+        self.leftBearingWidth = leftBearingWidth
+        self.rightBearingWidth = rightBearingWidth
 
         self.l3 = (self.l - self.b2 - self.middlePartWidth) / 2
         self.l6 = (self.l + self.b3 + self.middlePartWidth) / 2
@@ -112,24 +105,37 @@ class Vratilo:
         self.alpha0 = self.sigma_fDN / (sqrt(3) * self.tau_fDI)
         self.k = (10 / self.sigmaF_max) ** (1 / 3)
 
-    def setSteps(self, steps):
-        self.steps = steps
+    def showDiagrams(self):
+        self.plotForcesMoments()
+        self.plotShaft()
+        plt.show()
 
-    def plotShaft(self, darkMode=True, lineColor="red"):
+    def plotShaft(
+        self, darkMode=True, idealShaftLineColor="red", stepLinesColor="white"
+    ):
         plt.style.use("dark_background" if darkMode else "default")
-        plt.figure("Idealni oblik vratila", figsize=(10, 7))
+        plt.figure("Idealni oblik vratila", figsize=(13, 8))
+        plt.tight_layout(pad=2, h_pad=5)
         plt.suptitle("Idealni oblik vratila")
         plt.grid(True, alpha=0.3)
 
-        extraLineColor = "white" if darkMode else "black"
-        plt.axhline(0, color=extraLineColor)
+        plt.axhline(0, color="white" if darkMode else "black", ls="-.")
 
         radii = self.getRadius(self.x)
 
-        plt.plot(self.x, radii, lineColor)
-        plt.plot(self.x, [-r for r in radii], lineColor)
+        plt.plot(self.x, radii, idealShaftLineColor)
+        plt.plot(self.x, [-r for r in radii], idealShaftLineColor)
 
-        plt.show()
+        curX = self.leftBearingWidth / 2 - self.steps[0][1]
+        prevRadius = 0
+        for diameter, distance in self.steps + [(0, 0)]:
+            radius = diameter / 2
+            plt.plot([curX, curX + distance], [radius, radius], color=stepLinesColor)
+            plt.plot([curX, curX + distance], [-radius, -radius], color=stepLinesColor)
+            plt.plot([curX, curX], [prevRadius, radius], color=stepLinesColor)
+            plt.plot([curX, curX], [-prevRadius, -radius], color=stepLinesColor)
+            curX += distance
+            prevRadius = radius
 
     def getDiameter(self, x):
         if isinstance(x, (int, float)):
@@ -169,12 +175,12 @@ class Vratilo:
         fig.canvas.manager.set_window_title("Sile i momenti")
 
         graphs = [
-            [[self.Nx1, self.Nx2, self.Nx3], "Nx", "Sila (N)"],
-            [[self.Qy1, self.Qy2, self.Qy3], "Qy", "Sila (N)"],
-            [[self.Qz1, self.Qz2, self.Qz3], "Qz", "Sila (N)"],
-            [[self.Tx1, self.Tx2, self.Tx3], "Tx", "Moment (Nmm)"],
-            [[self.My1, self.My2, self.My3], "My", "Moment (Nmm)"],
-            [[self.Mz1, self.Mz2, self.Mz3], "Mz", "Moment (Nmm)"],
+            [[self.Nx1, self.Nx2, self.Nx3], "Nx", "Sila (kN)"],
+            [[self.Qy1, self.Qy2, self.Qy3], "Qy", "Sila (kN)"],
+            [[self.Qz1, self.Qz2, self.Qz3], "Qz", "Sila (kN)"],
+            [[self.Tx1, self.Tx2, self.Tx3], "Tx", "Moment (Nm)"],
+            [[self.My1, self.My2, self.My3], "My", "Moment (Nm)"],
+            [[self.Mz1, self.Mz2, self.Mz3], "Mz", "Moment (Nm)"],
         ]
 
         for i, (y, title, label) in enumerate(graphs):
@@ -186,7 +192,6 @@ class Vratilo:
             ax.set_ylabel(label)
 
         plt.tight_layout(rect=[0, 0, 1, 0.95])
-        plt.show()
 
     def plotDiagram(self, y, ax, darkMode, lineColor="aquamarine"):
         extraLineColor = "white" if darkMode else "black"
