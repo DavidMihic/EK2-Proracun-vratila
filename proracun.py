@@ -105,14 +105,12 @@ class Vratilo:
         self.alpha0 = self.sigma_fDN / (sqrt(3) * self.tau_fDI)
         self.k = (10 / self.sigmaF_max) ** (1 / 3)
 
-    def showDiagrams(self):
-        self.plotForcesMoments()
-        self.plotShaft()
+    def showDiagrams(self, darkMode=True):
+        self.plotForcesMoments(darkMode)
+        self.plotShaft(darkMode)
         plt.show()
 
-    def plotShaft(
-        self, darkMode=True, idealShaftLineColor="red", stepLinesColor="white"
-    ):
+    def plotShaft(self, darkMode=True, idealShaftLineColor="red"):
         plt.style.use("dark_background" if darkMode else "default")
         plt.figure("Idealni oblik vratila", figsize=(13, 8))
         plt.tight_layout(pad=2, h_pad=5)
@@ -123,19 +121,43 @@ class Vratilo:
 
         radii = self.getRadius(self.x)
 
+        # Plot ideal shaft
         plt.plot(self.x, radii, idealShaftLineColor)
         plt.plot(self.x, [-r for r in radii], idealShaftLineColor)
 
+        extraLinesColor = "white" if darkMode else "black"
+
+        # Plot steps
         curX = self.leftBearingWidth / 2 - self.steps[0][1]
         prevRadius = 0
         for diameter, distance in self.steps + [(0, 0)]:
             radius = diameter / 2
-            plt.plot([curX, curX + distance], [radius, radius], color=stepLinesColor)
-            plt.plot([curX, curX + distance], [-radius, -radius], color=stepLinesColor)
-            plt.plot([curX, curX], [prevRadius, radius], color=stepLinesColor)
-            plt.plot([curX, curX], [-prevRadius, -radius], color=stepLinesColor)
+            plt.plot([curX, curX + distance], [radius, radius], color=extraLinesColor)
+            plt.plot([curX, curX + distance], [-radius, -radius], color=extraLinesColor)
+            plt.plot([curX, curX], [prevRadius, radius], color=extraLinesColor)
+            plt.plot([curX, curX], [-prevRadius, -radius], color=extraLinesColor)
             curX += distance
             prevRadius = radius
+
+        # Indicate critical sections
+        criticalSections = [
+            0,
+            self.steps[1][1] + self.leftBearingWidth / 2,
+            self.l3,
+            self.l3 + self.b2 / 2,
+            self.l6 - self.b3 / 2,
+            self.l6,
+            self.l - self.steps[-2][1] - self.rightBearingWidth / 2,
+            self.l,
+        ]
+        maxRadius = max(self.steps)[0] / 2
+        for distance in criticalSections:
+            plt.plot(
+                [distance, distance],
+                [-maxRadius * 1.1, maxRadius * 1.1],
+                color=extraLinesColor,
+                ls="--",
+            )
 
     def getDiameter(self, x):
         if isinstance(x, (int, float)):
