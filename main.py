@@ -3,7 +3,7 @@ from proracun import Vratilo, Lezaj
 if __name__ == "__main__":
     # steps = [(diameter, up to distance), ...] (mm)
     vratilo = Vratilo(
-        [(30, 20), (45, 40), (55, 110), (70, 24), (55, 110), (45, 46.5), (30, 35.5)],
+        [(30, 20), (45, 45), (55, 110), (70, 24), (55, 110), (45, 41.5), (30, 35.5)],
         16,
         23,
     )
