@@ -3,7 +3,7 @@ from proracun import Vratilo, Lezaj
 if __name__ == "__main__":
     vratilo = Vratilo()
     vratilo.plotForcesMoments()
-    vratilo.plotIdealShaft()
+    vratilo.plotShaft()
 
     lezajA = Lezaj("NU 206 ECP", 30, vratilo.F_A, 0, 44000, 36500, 0, True)
     lezajA.checkBearing()

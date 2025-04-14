@@ -1,7 +1,6 @@
 import numpy as np
 from math import sqrt, cos, tan, radians as rad
 import matplotlib.pyplot as plt
-from matplotlib.patches import Polygon
 
 
 class Vratilo:
@@ -113,34 +112,22 @@ class Vratilo:
         self.alpha0 = self.sigma_fDN / (sqrt(3) * self.tau_fDI)
         self.k = (10 / self.sigmaF_max) ** (1 / 3)
 
-    def plotIdealShaft(self, darkMode=True, lineColor="red"):
+    def setSteps(self, steps):
+        self.steps = steps
+
+    def plotShaft(self, darkMode=True, lineColor="red"):
         plt.style.use("dark_background" if darkMode else "default")
         plt.figure("Idealni oblik vratila", figsize=(10, 7))
         plt.suptitle("Idealni oblik vratila")
-        plt.grid(True)
+        plt.grid(True, alpha=0.3)
 
         extraLineColor = "white" if darkMode else "black"
         plt.axhline(0, color=extraLineColor)
-        plt.axvline(0, linestyle="--", color=extraLineColor)
-        plt.axvline(self.l3, linestyle="--", color=extraLineColor)
-        plt.axvline(self.l6, linestyle="--", color=extraLineColor)
-        plt.axvline(self.l, linestyle="--", color=extraLineColor)
 
-        diameters = self.getDiameter(self.x)
-        plt.plot(self.x, diameters, lineColor)
+        radii = self.getRadius(self.x)
 
-        vertices = list(zip(self.x, diameters))
-        polygon = Polygon(
-            vertices,
-            closed=True,
-            facecolor="none",
-            edgecolor=lineColor,
-            hatch="//",
-        )
-        plt.gca().add_patch(polygon)
-
-        plt.xlabel("Udaljenost (mm)")
-        plt.ylabel("Promjer vratila (mm)")
+        plt.plot(self.x, radii, lineColor)
+        plt.plot(self.x, [-r for r in radii], lineColor)
 
         plt.show()
 
@@ -168,6 +155,12 @@ class Vratilo:
             d[i] = self.k * M ** (1 / 3)
 
         return d
+
+    def getRadius(self, x):
+        if isinstance(x, (int, float)):
+            return self.getDiameter(x) / 2
+
+        return [d / 2 for d in self.getDiameter(x)]
 
     def plotForcesMoments(self, darkMode=True):
         plt.style.use("dark_background" if darkMode else "default")
