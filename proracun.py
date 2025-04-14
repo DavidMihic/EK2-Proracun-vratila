@@ -113,26 +113,28 @@ class Vratilo:
         self.alpha0 = self.sigma_fDN / (sqrt(3) * self.tau_fDI)
         self.k = (10 / self.sigmaF_max) ** (1 / 3)
 
-    def plotIdealShaft(self):
+    def plotIdealShaft(self, darkMode=True, lineColor="red"):
+        plt.style.use("dark_background" if darkMode else "default")
         plt.figure("Idealni oblik vratila", figsize=(10, 7))
         plt.suptitle("Idealni oblik vratila")
         plt.grid(True)
 
-        plt.axhline(0, color="black")
-        plt.axvline(0, linestyle="--", color="black")
-        plt.axvline(self.l3, linestyle="--", color="black")
-        plt.axvline(self.l6, linestyle="--", color="black")
-        plt.axvline(self.l, linestyle="--", color="black")
+        extraLineColor = "white" if darkMode else "black"
+        plt.axhline(0, color=extraLineColor)
+        plt.axvline(0, linestyle="--", color=extraLineColor)
+        plt.axvline(self.l3, linestyle="--", color=extraLineColor)
+        plt.axvline(self.l6, linestyle="--", color=extraLineColor)
+        plt.axvline(self.l, linestyle="--", color=extraLineColor)
 
         diameters = self.getDiameter(self.x)
-        plt.plot(self.x, diameters, "b")
+        plt.plot(self.x, diameters, lineColor)
 
         vertices = list(zip(self.x, diameters))
         polygon = Polygon(
             vertices,
             closed=True,
             facecolor="none",
-            edgecolor="b",
+            edgecolor=lineColor,
             hatch="//",
         )
         plt.gca().add_patch(polygon)
@@ -167,24 +169,25 @@ class Vratilo:
 
         return d
 
-    def plotForcesMoments(self):
+    def plotForcesMoments(self, darkMode=True):
+        plt.style.use("dark_background" if darkMode else "default")
         fig, axes = plt.subplots(2, 3, figsize=(15, 10))
         fig.suptitle("Sile i momenti")
         fig.canvas.manager.set_window_title("Sile i momenti")
 
         graphs = [
-            [[self.Nx1, self.Nx2, self.Nx3], "y", "Nx", "Sila (N)"],
-            [[self.Qy1, self.Qy2, self.Qy3], "r", "Qy", "Sila (N)"],
-            [[self.Qz1, self.Qz2, self.Qz3], "c", "Qz", "Sila (N)"],
-            [[self.Tx1, self.Tx2, self.Tx3], "b", "Tx", "Moment (Nmm)"],
-            [[self.My1, self.My2, self.My3], "m", "My", "Moment (Nmm)"],
-            [[self.Mz1, self.Mz2, self.Mz3], "g", "Mz", "Moment (Nmm)"],
+            [[self.Nx1, self.Nx2, self.Nx3], "Nx", "Sila (N)"],
+            [[self.Qy1, self.Qy2, self.Qy3], "Qy", "Sila (N)"],
+            [[self.Qz1, self.Qz2, self.Qz3], "Qz", "Sila (N)"],
+            [[self.Tx1, self.Tx2, self.Tx3], "Tx", "Moment (Nmm)"],
+            [[self.My1, self.My2, self.My3], "My", "Moment (Nmm)"],
+            [[self.Mz1, self.Mz2, self.Mz3], "Mz", "Moment (Nmm)"],
         ]
 
-        for i, (y, color, title, label) in enumerate(graphs):
+        for i, (y, title, label) in enumerate(graphs):
             ax = axes[i // 3, i % 3]
-            self.plotDiagram(y, color, ax)
-            ax.grid(True)
+            self.plotDiagram(y, ax, darkMode)
+            ax.grid(True, alpha=0.3)
             ax.set_title(title)
             ax.set_xlabel("Udaljenost (mm)")
             ax.set_ylabel(label)
@@ -192,19 +195,36 @@ class Vratilo:
         plt.tight_layout(rect=[0, 0, 1, 0.95])
         plt.show()
 
-    def plotDiagram(self, y, color, ax):
-        ax.axhline(0, color="black")
-        ax.axvline(0, linestyle="--", color="black")
-        ax.axvline(self.l3, linestyle="--", color="black")
-        ax.axvline(self.l6, linestyle="--", color="black")
-        ax.axvline(self.l, linestyle="--", color="black")
+    def plotDiagram(self, y, ax, darkMode, lineColor="aquamarine"):
+        extraLineColor = "white" if darkMode else "black"
+        ax.axhline(0, color=extraLineColor)
+        ax.axvline(0, linestyle="--", color=extraLineColor)
+        ax.axvline(self.l3, linestyle="--", color=extraLineColor)
+        ax.axvline(self.l6, linestyle="--", color=extraLineColor)
+        ax.axvline(self.l, linestyle="--", color=extraLineColor)
 
         xData = [self.x1, self.x2, self.x3]
         for i in range(len(xData)):
             curX = xData[i]
             curY = y[i]
-            ax.plot(curX, list(map(curY, curX)), color=color, linewidth=2)
-            ax.fill_between(curX, list(map(curY, curX)), 0, color=color, alpha=0.3)
+            yValues = [curY(x) / 1000 for x in curX]  # N -> kN, Nmm -> Nm
+            ax.plot(curX, yValues, color=lineColor, linewidth=2)
+            ax.fill_between(
+                curX,
+                yValues,
+                0,
+                where=[val >= 0 for val in yValues],
+                color="green",
+                alpha=0.3,
+            )
+            ax.fill_between(
+                curX,
+                yValues,
+                0,
+                where=[val < 0 for val in yValues],
+                color="red",
+                alpha=0.3,
+            )
 
 
 class Lezaj:
