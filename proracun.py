@@ -3,12 +3,31 @@ from math import sqrt, cos, tan, radians as rad
 import matplotlib.pyplot as plt
 
 
+def linearInterpolate(x, xRanges, yRanges):
+    rightIdx = [i for i in range(len(xRanges)) if xRanges[i] >= x][0]
+
+    if rightIdx == 0:
+        return yRanges[0]
+
+    xLeft = xRanges[rightIdx - 1]
+    xRight = xRanges[rightIdx]
+    yLeft = yRanges[rightIdx - 1]
+    yRight = yRanges[rightIdx]
+
+    return yLeft + (x - xLeft) / (xRight - xLeft) * (yRight - yLeft)
+
+
 class Vratilo:
     middlePartWidth = 24  # mm
 
     sigmaF_max = 50  # N/mm^2
     sigma_fDN = 240  # N/mm^2
     tau_fDI = 190  # N/mm^2
+    Rm = 500  # N/mm^2
+
+    minimalSafetyFactor = 1.4
+
+    impactFactor = 1
 
     ALPHA = 20  # deg
     ALPHA_N = 20  # deg
@@ -35,6 +54,17 @@ class Vratilo:
 
         self.l3 = (self.l - self.b2 - self.middlePartWidth) / 2
         self.l6 = (self.l + self.b3 + self.middlePartWidth) / 2
+
+        self.criticalSections = [
+            leftBearingWidth / 2,
+            steps[1][1] + leftBearingWidth / 2,
+            self.l3,
+            self.l3 + self.b2 / 2,
+            self.l6 - self.b3 / 2,
+            self.l6,
+            self.l - steps[-2][1] - rightBearingWidth / 2,
+            self.l - rightBearingWidth / 2,
+        ]
 
         self.F_t2 = self.T / self.r2
         self.F_r2 = self.F_t2 * tan(rad(self.ALPHA))
@@ -140,18 +170,8 @@ class Vratilo:
             prevRadius = radius
 
         # Indicate critical sections
-        criticalSections = [
-            0,
-            self.steps[1][1] + self.leftBearingWidth / 2,
-            self.l3,
-            self.l3 + self.b2 / 2,
-            self.l6 - self.b3 / 2,
-            self.l6,
-            self.l - self.steps[-2][1] - self.rightBearingWidth / 2,
-            self.l,
-        ]
         maxRadius = max(self.steps)[0] / 2
-        for i, distance in enumerate(criticalSections):
+        for i, distance in enumerate(self.criticalSections):
             plt.plot(
                 [distance, distance],
                 [-maxRadius * 1.1, maxRadius * 1.1],
@@ -262,6 +282,24 @@ class Vratilo:
                 alpha=0.3,
             )
 
+    def calculateB1(self, diameter):
+        b1Ranges = [1, 0.95, 0.9, 0.85, 0.8, 0.75]
+        diameterRanges = [10, 20, 30, 40, 60, 120]
+
+        return linearInterpolate(diameter, diameterRanges, b1Ranges)
+
+    def checkShaft(self):
+        print(self.criticalSections)
+
+        crit = self.criticalSections  # shorthand
+        diams = [pair[0] for pair in self.steps]
+
+        # Section 1
+        M_red = sqrt(self.My1(crit[0]) ** 2 + self.Mz1(crit[0]))
+        W = 0.1 * diams[0] ** 3
+        sigma_f = M_red / W
+        b1 = self.calculateB1(diams[0])
+
 
 class Lezaj:
     n_m = 320  # rpm
@@ -298,28 +336,15 @@ class Lezaj:
 
     def checkBearing(self):
         self.helperRatio = self.f0 * self.axialForce / self.C0
-        self.rightIdx = [
-            i
-            for i in range(len(self.helperRatioRanges))
-            if self.helperRatioRanges[i] >= self.helperRatio
-        ][0]
-
-        helperRatioLeft = self.helperRatioRanges[self.rightIdx - 1]
-        helperRatioRight = self.helperRatioRanges[self.rightIdx]
-        eLeft = self.eRanges[self.rightIdx - 1]
-        eRight = self.eRanges[self.rightIdx]
-
-        self.e = eLeft + (self.helperRatio - helperRatioLeft) / (
-            helperRatioRight - helperRatioLeft
-        ) * (eRight - eLeft)
+        self.e = linearInterpolate(
+            self.helperRatio, self.helperRatioRanges, self.eRanges
+        )
 
         if self.isLeftBearing or self.forceRatio <= self.e:
             self.X, self.Y = 1, 0
         else:
-            yLeft = self.yRanges[self.rightIdx - 1]
-            yRight = self.yRanges[self.rightIdx]
             self.X = 0.56
-            self.Y = yLeft + (self.e - eLeft) / (eLeft - eRight) * (yRight - yLeft)
+            self.Y = linearInterpolate(self.e, self.eRanges, self.yRanges)
 
         radialLoadEquivalent = self.X * self.radialForce + self.Y * self.axialForce
 
@@ -331,7 +356,7 @@ class Lezaj:
         )
 
         print("Ležaj:", self.designation)
-        print("C1:", self.C1)
-        print("Vrijeme:", self.Lh)
+        print("C1 (N):", self.C1)
+        print("Vrijeme (h):", self.Lh)
 
         print(f"{'' if self.C1 <= self.C else 'NE '}ZADOVOLJAVA!")
