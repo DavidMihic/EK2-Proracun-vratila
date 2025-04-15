@@ -1,13 +1,14 @@
 from proracun import Vratilo, Lezaj
 
 if __name__ == "__main__":
-    # steps = [(diameter, up to distance), ...] (mm)
+    # steps = [(diameter, length), ...] (mm)
     vratilo = Vratilo(
         [(30, 20), (45, 45), (55, 110), (70, 24), (55, 110), (45, 41.5), (30, 35.5)],
         16,
         23,
     )
     vratilo.showDiagrams()
+    vratilo.checkShaft()
 
     lezajA = Lezaj("NU 206 ECP", 30, vratilo.F_A, 0, 44000, 36500, 0, True)
     lezajA.checkBearing()
