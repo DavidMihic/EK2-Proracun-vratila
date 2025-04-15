@@ -151,12 +151,28 @@ class Vratilo:
             self.l,
         ]
         maxRadius = max(self.steps)[0] / 2
-        for distance in criticalSections:
+        for i, distance in enumerate(criticalSections):
             plt.plot(
                 [distance, distance],
                 [-maxRadius * 1.1, maxRadius * 1.1],
                 color=extraLinesColor,
                 ls="--",
+            )
+            plt.annotate(
+                str(i + 1),
+                xy=(distance, maxRadius * 1.15),
+                xytext=(distance - 2.5, maxRadius * 1.15),
+                color="white",
+                fontsize=15,
+                va="center",
+            )
+            plt.annotate(
+                str(i + 1),
+                xy=(distance, -maxRadius * 1.175),
+                xytext=(distance - 2.5, -maxRadius * 1.175),
+                color="white",
+                fontsize=15,
+                va="center",
             )
 
     def getDiameter(self, x):
