@@ -8,7 +8,6 @@ if __name__ == "__main__":
         23,
     )
     vratilo.showDiagrams()
-    vratilo.checkShaft()
 
     lezajA = Lezaj("NU 206 ECP", 30, vratilo.F_A, 0, 44000, 36500, 0, True)
     lezajA.checkBearing()

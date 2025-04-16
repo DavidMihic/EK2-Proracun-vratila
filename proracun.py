@@ -25,10 +25,6 @@ class Vratilo:
     tau_fDI = 190  # N/mm^2
     Rm = 500  # N/mm^2
 
-    minimalSafetyFactor = 1.4
-
-    impactFactor = 1
-
     ALPHA = 20  # deg
     ALPHA_N = 20  # deg
     BETA = 18  # deg
@@ -282,23 +278,12 @@ class Vratilo:
                 alpha=0.3,
             )
 
-    def calculateB1(self, diameter):
-        b1Ranges = [1, 0.95, 0.9, 0.85, 0.8, 0.75]
-        diameterRanges = [10, 20, 30, 40, 60, 120]
-
-        return linearInterpolate(diameter, diameterRanges, b1Ranges)
-
-    def checkShaft(self):
-        print(self.criticalSections)
-
-        crit = self.criticalSections  # shorthand
-        diams = [pair[0] for pair in self.steps]
-
-        # Section 1
-        M_red = sqrt(self.My1(crit[0]) ** 2 + self.Mz1(crit[0]))
-        W = 0.1 * diams[0] ** 3
-        sigma_f = M_red / W
-        b1 = self.calculateB1(diams[0])
+    def getReducedMoment(self, x):
+        if x < self.l3:
+            return sqrt(self.Mz1(x) ** 2 + self.My1(x) ** 2)
+        elif x <= self.l6:
+            return sqrt(self.Mz2(x) ** 2 + self.My2(x) ** 2)
+        return sqrt(self.Mz3(x) ** 2 + self.My3(x) ** 2)
 
 
 class Lezaj:
