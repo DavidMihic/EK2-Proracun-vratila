@@ -1,6 +1,15 @@
 import numpy as np
-from math import sqrt, cos, tan, radians as rad
+from math import sqrt, pi, cos, tan, radians as rad
 import matplotlib.pyplot as plt
+
+# N/mm^2
+MATERIALS = {
+    "St 37-2": {"Rm": 370, "sigma_fDN": 190, "tau_fDI": 140},
+    "St 42-2": {"Rm": 420, "sigma_fDN": 210, "tau_fDI": 160},
+    "St 52-3": {"Rm": 500, "sigma_fDN": 240, "tau_fDI": 190},
+    "St 60-2": {"Rm": 600, "sigma_fDN": 300, "tau_fDI": 230},
+    "St 70-2": {"Rm": 700, "sigma_fDN": 350, "tau_fDI": 260},
+}
 
 
 def linearInterpolate(x, xRanges, yRanges):
@@ -19,11 +28,12 @@ def linearInterpolate(x, xRanges, yRanges):
 
 class Vratilo:
     middlePartWidth = 24  # mm
+    n_m = 320  # rpm
+
+    E = 210000  # N/mm^2
+    poissonFactor = 0.3
 
     sigmaF_max = 50  # N/mm^2
-    sigma_fDN = 240  # N/mm^2
-    tau_fDI = 190  # N/mm^2
-    Rm = 500  # N/mm^2
 
     ALPHA = 20  # deg
     ALPHA_N = 20  # deg
@@ -31,7 +41,7 @@ class Vratilo:
 
     resolution = 0.5  # mm
 
-    def __init__(self, steps, leftBearingWidth, rightBearingWidth):
+    def __init__(self, material, steps, leftBearingWidth, rightBearingWidth):
         self.T = 420000  # Nmm
         self.J2 = 0.0500  # kgm^2 = Nms^2
         self.J3 = 1.050  # kgm^2 = Nms^2
@@ -43,13 +53,24 @@ class Vratilo:
         self.r2 = 165  # mm
         self.r3 = 57.8  # mm
 
+        material = MATERIALS[material]
+        self.Rm = material["Rm"]
+        self.sigma_fDN = material["sigma_fDN"]
+        self.tau_fDI = material["tau_fDI"]
+
         self.steps = steps
         self.L = sum(pair[1] for pair in steps)
         self.leftBearingWidth = leftBearingWidth
         self.rightBearingWidth = rightBearingWidth
 
+        self.l1 = leftBearingWidth / 2
+        self.l2 = self.l1 + steps[1][1]
         self.l3 = (self.l - self.b2 - self.middlePartWidth) / 2
+        self.l4 = self.l3 + steps[2][1] / 2
+        self.l5 = self.l4 + self.middlePartWidth
         self.l6 = (self.l + self.b3 + self.middlePartWidth) / 2
+        self.l7 = self.l6 + steps[4][1] / 2
+        self.l8 = self.l - rightBearingWidth / 2
 
         self.criticalSections = [
             leftBearingWidth / 2,
@@ -178,7 +199,7 @@ class Vratilo:
                 str(i + 1),
                 xy=(distance, maxRadius * 1.15),
                 xytext=(distance - 2.5, maxRadius * 1.15),
-                color="white",
+                color=extraLinesColor,
                 fontsize=15,
                 va="center",
             )
@@ -186,7 +207,7 @@ class Vratilo:
                 str(i + 1),
                 xy=(distance, -maxRadius * 1.175),
                 xytext=(distance - 2.5, -maxRadius * 1.175),
-                color="white",
+                color=extraLinesColor,
                 fontsize=15,
                 va="center",
             )
@@ -284,6 +305,106 @@ class Vratilo:
         elif x <= self.l6:
             return sqrt(self.Mz2(x) ** 2 + self.My2(x) ** 2)
         return sqrt(self.Mz3(x) ** 2 + self.My3(x) ** 2)
+
+    def checkFlexuralCriticalRotationSpeed(self):
+        I = [pi * d**4 / 64 for d, l in self.steps]  # Moments of area per step
+
+        # Partial virtual deflection due to gear Z2
+        F_A_z2 = self.G_z2 * (self.l - self.l3) / self.l
+        F_B_z2 = self.G_z2 * self.l3 / self.l
+
+        f_A_z2 = (
+            -F_A_z2
+            / (3 * self.E)
+            * (
+                self.l1**3 / I[0]
+                + (self.l2**3 - self.l1**3) / I[1]
+                + (self.l3**3 - self.l2**3) / I[2]
+            )
+        )
+
+        f_B_z2 = (
+            -F_B_z2
+            / (3 * self.E)
+            * (
+                (self.l - self.l8) ** 3 / I[6]
+                + ((self.l - self.l7) ** 3 - (self.l - self.l8) ** 3) / I[5]
+                + ((self.l - self.l5) ** 3 - (self.l - self.l7) ** 3) / I[4]
+                + ((self.l - self.l4) ** 3 - (self.l - self.l5) ** 3) / I[3]
+                + ((self.l - self.l3) ** 3 - (self.l - self.l4) ** 3) / I[2]
+            )
+        )
+
+        f_Gh_z2 = -f_B_z2 + (self.l - self.l3) * (f_B_z2 - f_A_z2) / self.l
+
+        # Partial virtual deflection due to gear Z3
+        F_A_z3 = self.G_z3 * (self.l - self.l6) / self.l
+        F_B_z3 = self.G_z3 * self.l6 / self.l
+
+        f_A_z3 = (
+            -F_A_z3
+            / (3 * self.E)
+            * (
+                self.l1**3 / I[0]
+                + (self.l2**3 - self.l1**3) / I[1]
+                + (self.l4**3 - self.l2**3) / I[2]
+                + (self.l5**3 - self.l4**3) / I[3]
+                + (self.l6**3 - self.l5**3) / I[4]
+            )
+        )
+
+        f_B_z3 = (
+            -F_B_z3
+            / (3 * self.E)
+            * (
+                (self.l - self.l8) ** 3 / I[6]
+                + ((self.l - self.l7) ** 3 - (self.l - self.l8) ** 3) / I[5]
+                + ((self.l - self.l6) ** 3 - (self.l - self.l7) ** 3) / I[4]
+            )
+        )
+
+        f_Gh_z3 = -f_B_z3 + (self.l - self.l6) * (f_B_z3 - f_A_z3) / self.l
+
+        nf_krit = 1 / (2 * pi) * sqrt(9.81 * 1e3 / (abs(f_Gh_z2) + abs(f_Gh_z3)))  # rps
+        nf_krit_rpm = nf_krit * 60  # rpm
+
+        print(f"Fleksijska kritična brzina vrtnje: {round(nf_krit_rpm)} min^-1")
+
+        if self.n_m <= 0.7 * nf_krit_rpm:
+            print("PODKRITIČNO PODRUČJE!")
+        elif self.n_m >= 1.3 * nf_krit_rpm:
+            print("NADKRITIČNO PODRUČJE!")
+        else:
+            print("KRITIČNO PODRUČJE!")
+
+    def checkTorsionalCriticalRotationSpeed(self):
+        d3 = self.steps[2][0]
+        d4 = self.steps[3][0]
+        d5 = self.steps[4][0]
+
+        G = self.E / (2 * (1 + self.poissonFactor))
+
+        c_t = 1 / (
+            32
+            / (pi * G)
+            * (
+                (self.l4 - self.l3) / d3**4
+                + (self.l5 - self.l4) / d4**4
+                + (self.l6 - self.l5) / d5**4
+            )
+        )
+
+        nt_krit = 1 / (2 * pi) * sqrt(c_t * 1e-3 * (1 / self.J2 + 1 / self.J3))  # rps
+        nt_krit_rpm = nt_krit * 60  # rpm
+
+        print(f"Torzijska kritična brzina vrtnje: {round(nt_krit_rpm)} min^-1")
+
+        if self.n_m <= 0.8 * nt_krit_rpm:
+            print("PODKRITIČNO PODRUČJE!")
+        elif self.n_m >= 1.2 * nt_krit_rpm:
+            print("NADKRITIČNO PODRUČJE!")
+        else:
+            print("KRITIČNO PODRUČJE!")
 
 
 class Lezaj:
