@@ -302,7 +302,6 @@ class Lezaj:
         C,
         C0,
         f0,
-        isLeftBearing,
     ):
         self.designation = designation
         self.innerDiameter = innerDiameter
@@ -312,9 +311,8 @@ class Lezaj:
         self.C = C
         self.C0 = C0
         self.f0 = f0
-        self.isLeftBearing = isLeftBearing
 
-        if isLeftBearing:
+        if f0 == 0:
             self.epsilon = 10 / 3
         else:
             self.epsilon = 3
@@ -325,7 +323,7 @@ class Lezaj:
             self.helperRatio, self.helperRatioRanges, self.eRanges
         )
 
-        if self.isLeftBearing or self.forceRatio <= self.e:
+        if self.f0 == 0 or self.forceRatio <= self.e:
             self.X, self.Y = 1, 0
         else:
             self.X = 0.56
