@@ -163,6 +163,7 @@ class Vratilo:
         plt.tight_layout(pad=2, h_pad=5)
         plt.suptitle("Idealni oblik vratila")
         plt.grid(True, alpha=0.3)
+        plt.gca().set_aspect("equal")
 
         plt.axhline(0, color="white" if darkMode else "black", ls="-.")
 
@@ -195,18 +196,20 @@ class Vratilo:
                 color=extraLinesColor,
                 ls="--",
             )
+
+            dx = (-1 if i < len(self.criticalSections) // 2 else 1) * 7.5 - 2.5
             plt.annotate(
                 str(i + 1),
-                xy=(distance, maxRadius * 1.15),
-                xytext=(distance - 2.5, maxRadius * 1.15),
+                xy=(distance, maxRadius),
+                xytext=(distance + dx, maxRadius),
                 color=extraLinesColor,
                 fontsize=15,
                 va="center",
             )
             plt.annotate(
                 str(i + 1),
-                xy=(distance, -maxRadius * 1.175),
-                xytext=(distance - 2.5, -maxRadius * 1.175),
+                xy=(distance, -maxRadius),
+                xytext=(distance + dx, -maxRadius),
                 color=extraLinesColor,
                 fontsize=15,
                 va="center",
