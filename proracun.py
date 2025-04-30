@@ -451,7 +451,9 @@ class Lezaj:
             self.X, self.Y = 1, 0
         else:
             self.X = 0.56
-            self.Y = linearInterpolate(self.e, self.eRanges, self.yRanges)
+            self.Y = linearInterpolate(
+                self.helperRatio, self.helperRatioRanges, self.yRanges
+            )
 
         radialLoadEquivalent = self.X * self.radialForce + self.Y * self.axialForce
 
