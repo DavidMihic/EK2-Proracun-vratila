@@ -72,17 +72,6 @@ class Vratilo:
         self.l7 = self.l6 + steps[4][1] / 2
         self.l8 = self.l - rightBearingWidth / 2
 
-        self.criticalSections = [
-            leftBearingWidth / 2,
-            steps[1][1] + leftBearingWidth / 2,
-            self.l3,
-            self.l3 + self.b2 / 2,
-            self.l6 - self.b3 / 2,
-            self.l6,
-            self.l - steps[-2][1] - rightBearingWidth / 2,
-            self.l - rightBearingWidth / 2,
-        ]
-
         self.F_t2 = self.T / self.r2
         self.F_r2 = self.F_t2 * tan(rad(self.ALPHA))
         self.T2 = self.T
@@ -188,8 +177,18 @@ class Vratilo:
             prevRadius = radius
 
         # Indicate critical sections
+        criticalSections = [
+            self.l1,
+            self.l2,
+            self.l3,
+            self.l4,
+            self.l5,
+            self.l6,
+            self.l7,
+            self.l8,
+        ]
         maxRadius = max(self.steps)[0] / 2
-        for i, distance in enumerate(self.criticalSections):
+        for i, distance in enumerate(criticalSections):
             plt.plot(
                 [distance, distance],
                 [-maxRadius * 1.1, maxRadius * 1.1],
@@ -197,7 +196,7 @@ class Vratilo:
                 ls="--",
             )
 
-            dx = (-1 if i < len(self.criticalSections) // 2 else 1) * 7.5 - 2.5
+            dx = (-1 if i < len(criticalSections) // 2 else 1) * 7.5 - 2.5
             plt.annotate(
                 str(i + 1),
                 xy=(distance, maxRadius),
