@@ -122,19 +122,15 @@ class Vratilo:
         self.Tx2 = lambda x: -self.T
         self.Tx3 = lambda x: 0
 
-        self.My1 = lambda x: self.F_Av * x
-        self.My2 = lambda x: (self.F_Av - self.F_t2 - self.G_z2) * (
-            x - self.l3
-        ) + self.My1(self.l3)
-        self.My3 = lambda x: -self.F_Bv * (x - self.l6) + self.My2(self.l6)
+        self.My1 = lambda x: self.Qz1(x) * x
+        self.My2 = lambda x: self.Qz2(x) * (x - self.l3) + self.My1(self.l3)
+        self.My3 = lambda x: self.Qz3(x) * (x - self.l6) + self.My2(self.l6)
 
-        self.Mz1 = lambda x: -self.F_Ah * x
-        self.Mz2 = lambda x: -(self.F_Ah + self.F_r2) * (x - self.l3) + self.Mz1(
-            self.l3
-        )
+        self.Mz1 = lambda x: -self.Qy1(x) * x
+        self.Mz2 = lambda x: -self.Qy2(x) * (x - self.l3) + self.Mz1(self.l3)
         self.Mz3 = (
-            lambda x: self.F_Bh * (x - self.l6)
-            + self.F_a3 * self.r3
+            lambda x: -self.Qy3(x) * (x - self.l6)
+            + self.Nx3(x) * self.r3
             + self.Mz2(self.l6)
         )
 
