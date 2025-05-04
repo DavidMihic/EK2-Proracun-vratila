@@ -243,21 +243,21 @@ class Vratilo:
 
     def plotForcesMoments(self, darkMode=True):
         plt.style.use("dark_background" if darkMode else "default")
-        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+        fig, axes = plt.subplots(3, 2, figsize=(10, 10))
         fig.suptitle("Sile i momenti")
         fig.canvas.manager.set_window_title("Sile i momenti")
 
         graphs = [
-            [[self.Nx1, self.Nx2, self.Nx3], "Nx", "Sila (kN)"],
             [[self.Qy1, self.Qy2, self.Qy3], "Qy", "Sila (kN)"],
-            [[self.Qz1, self.Qz2, self.Qz3], "Qz", "Sila (kN)"],
-            [[self.Tx1, self.Tx2, self.Tx3], "Tx", "Moment (Nm)"],
-            [[self.My1, self.My2, self.My3], "My", "Moment (Nm)"],
             [[self.Mz1, self.Mz2, self.Mz3], "Mz", "Moment (Nm)"],
+            [[self.Nx1, self.Nx2, self.Nx3], "Nx", "Sila (kN)"],
+            [[self.Qz1, self.Qz2, self.Qz3], "Qz", "Sila (kN)"],
+            [[self.My1, self.My2, self.My3], "My", "Moment (Nm)"],
+            [[self.Tx1, self.Tx2, self.Tx3], "Tx", "Moment (Nm)"],
         ]
 
         for i, (y, title, label) in enumerate(graphs):
-            ax = axes[i // 3, i % 3]
+            ax = axes[i % 3, i // 3]
             self.plotDiagram(y, ax, darkMode)
             ax.grid(True, alpha=0.3)
             ax.set_title(title)
