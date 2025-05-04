@@ -144,7 +144,7 @@ class Vratilo:
 
     def plotShaft(self, darkMode=True, idealShaftLineColor="red"):
         plt.style.use("dark_background" if darkMode else "default")
-        plt.figure("Idealni oblik vratila", figsize=(13, 8))
+        plt.figure("Idealni oblik vratila", figsize=(15, 8))
         plt.tight_layout(pad=2, h_pad=5)
         plt.suptitle("Idealni oblik vratila")
         plt.grid(True, alpha=0.3)
