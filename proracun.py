@@ -215,8 +215,8 @@ class Vratilo:
             if x < self.l3:
                 M = sqrt(self.Mz1(x) ** 2 + self.My1(x) ** 2)
             elif x <= self.l6:
-                Mf = sqrt(self.Mz2(x) ** 2 + self.My2(x) ** 2)
-                M = sqrt(Mf**2 + 0.75 * (self.alpha0 * self.Tx2(x)) ** 2)
+                Mf_sq = self.Mz2(x) ** 2 + self.My2(x) ** 2
+                M = sqrt(Mf_sq + 0.75 * (self.alpha0 * self.T) ** 2)
             else:
                 M = sqrt(self.Mz3(x) ** 2 + self.My3(x) ** 2)
 
@@ -227,8 +227,8 @@ class Vratilo:
             if (x[i] == self.l3 and x[i] == x[i + 1]) or (x[i] < self.l3):
                 M = sqrt(self.Mz1(x[i]) ** 2 + self.My1(x[i]) ** 2)
             elif (x[i] == self.l6 and x[i] == x[i + 1]) or (x[i] < self.l6):
-                Mf = sqrt(self.Mz2(x[i]) ** 2 + self.My2(x[i]) ** 2)
-                M = sqrt(Mf**2 + 0.75 * (self.alpha0 * self.Tx2(x[i])) ** 2)
+                Mf_sq = self.Mz2(x[i]) ** 2 + self.My2(x[i]) ** 2
+                M = sqrt(Mf_sq + 0.75 * (self.alpha0 * self.T) ** 2)
             else:
                 M = sqrt(self.Mz3(x[i]) ** 2 + self.My3(x[i]) ** 2)
             d[i] = self.k * M ** (1 / 3)
